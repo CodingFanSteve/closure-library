@@ -49,15 +49,52 @@ tutorial.notepad.Note = function(title, content, noteContainer) {
  */
 tutorial.notepad.Note.prototype.makeNoteDom = function() {
   // Create DOM structure to represent the note.
-  this.headerElement = goog.dom.createDom('div',
-      {'style': 'background-color:#EEE'}, this.title);
+  this.headerElement = goog.dom.createDom('div', null, this.title);
   this.contentElement = goog.dom.createDom('div', null, this.content);
+
+  // Create the editor text area and save button.
+  this.editorElement = goog.dom.createDom('textarea');
+  var saveBtn = goog.dom.createDom('input',
+      {'type': 'button', 'value': 'Save'});
+  this.editorContainer = goog.dom.createDom('div', {'style': 'display:none;'},
+      this.editorElement, saveBtn);
+
+  this.contentContainer = goog.dom.createDom('div', null,
+      this.contentElement, this.editorContainer);
+
+  // Wrap the editor and the content div in a single parent so they can
+  // be toggled in unison.
   var newNote = goog.dom.createDom('div', null,
-      this.headerElement, this.contentElement);
+      this.headerElement, this.contentContainer);
 
   // Add the note's DOM structure to the document.
-  goog.dom.appendChild(this.parent, newNote);
-  return new goog.ui.Zippy(this.headerElement, this.contentElement);
+  this.parent.appendChild(newNote);
+
+  // Attach evetn listener for text edit
+  goog.events.listen(this.contentElement, goog.events.EventType.CLICK, this.openEditor, false, this);
+
+  // Attach event for save button
+  goog.events.listen(saveBtn, goog.events.EventType.CLICK, this.save, false, this);
+
+  // Attach the Zippy behavior.
+  this.zippy = new goog.ui.Zippy(this.headerElement, this.contentContainer);
+};
+
+tutorial.notepad.Note.prototype.openEditor = function(e) {
+  this.editorElement.value = this.content;
+  this.contentElement.style.display = 'none';
+  this.editorContainer.style.display = 'inline';
+};
+
+tutorial.notepad.Note.prototype.closeEditor = function() {
+  this.contentElement.innerHTML = this.content;
+  this.contentElement.style.display = 'inline';
+  this.editorContainer.style.display = 'none';
+};
+
+tutorial.notepad.Note.prototype.save = function(e) {
+  this.content = this.editorElement.value;
+  this.closeEditor();
 };
 
 goog.exportSymbol('tutorial', tutorial);
@@ -65,3 +102,6 @@ goog.exportProperty(tutorial, 'notepad', tutorial.notepad);
 goog.exportProperty(tutorial.notepad, 'makeNotes', tutorial.notepad.makeNotes);
 goog.exportProperty(tutorial.notepad, 'Note', tutorial.notepad.Note);
 goog.exportProperty(tutorial.notepad.Note.prototype, 'makeNoteDom', tutorial.notepad.Note.prototype.makeNoteDom);
+goog.exportProperty(tutorial.notepad.Note.prototype, 'openEditor', tutorial.notepad.Note.prototype.openEditor);
+goog.exportProperty(tutorial.notepad.Note.prototype, 'closeEditor', tutorial.notepad.Note.prototype.closeEditor);
+goog.exportProperty(tutorial.notepad.Note.prototype, 'save', tutorial.notepad.Note.prototype.save);
